@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.lambda_function import lambda_handler
+from lambda_function import lambda_handler
 
 
 @pytest.fixture
