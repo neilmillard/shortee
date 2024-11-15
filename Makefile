@@ -1,6 +1,8 @@
 # PYTHON_VERSION used by poetry
 PYTHON_VERSION := $(shell cat .python-version)
 LAMBDA_ZIP_NAME = dist_lambda.zip
+ACCOUNT_NUMBER=$(shell cat .account_id)
+API_PUBLIC_HOSTNAME=$(shell cat .api_public_hostname)
 
 .PHONY: test
 test: install black
@@ -32,3 +34,20 @@ build:
 	@poetry export -f requirements.txt --output requirements.txt
 	@pip install --no-deps -r requirements.txt --target dist
 	@cd ./dist && zip -qr9 ../${LAMBDA_ZIP_NAME} .
+
+.PHONY: deploy
+deploy: build
+	# We need to know that terraform is ready, so we check for the api_public_hostname that is output
+	aws lambda update-function-code \
+	  --function-name arn:aws:lambda:eu-west-2:${ACCOUNT_NUMBER}:function:web-lambda \
+	  --zip-file fileb://${LAMBDA_ZIP_NAME} \
+	  --publish
+	# Wait for lambda function update to complete
+	until aws lambda get-function --function-name arn:aws:lambda:eu-west-2:${ACCOUNT_NUMBER}:function:web-lambda | jq --exit-status '.Configuration.LastUpdateStatus == "Successful"'; do
+	  sleep 1s
+	done
+	- | # Smoke test deployed resources
+ 	export API_PUBLIC_HOSTNAME=$(cat ./.api_public_hostname)
+	set -exo pipefail
+	JSON_OUTPUT=$(curl -s -S -XPOST -H 'Content-Type: application/json' -H "Host:${API_PUBLIC_HOSTNAME}" "${EXECUTE_API_VPC_ENDPOINT_URL}/v1/PerformHealthcheck")
+	echo "${JSON_OUTPUT}" | jq --exit-status '.success == true'

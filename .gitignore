@@ -1,0 +1,4 @@
+/.api_public_hostname
+/dist_lambda.zip
+/requirements.txt
+/dist/
