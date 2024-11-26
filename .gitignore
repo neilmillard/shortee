@@ -1,4 +1,7 @@
 /.api_public_hostname
+/.account_id
 /dist_lambda.zip
 /requirements.txt
 /dist/
+/terraform/.terraform/
+/terraform/.terraform.lock.hcl

@@ -1,8 +1,7 @@
 # PYTHON_VERSION used by poetry
 PYTHON_VERSION := $(shell cat .python-version)
-LAMBDA_ZIP_NAME = dist_lambda.zip
-ACCOUNT_NUMBER=$(shell cat .account_id)
-API_PUBLIC_HOSTNAME=$(shell cat .api_public_hostname)
+LAMBDA_ZIP_NAME := dist_lambda.zip
+ACCOUNT_NUMBER := $(shell cat .account_id)
 
 .PHONY: test
 test: install black
@@ -46,8 +45,6 @@ deploy: build
 	until aws lambda get-function --function-name arn:aws:lambda:eu-west-2:${ACCOUNT_NUMBER}:function:web-lambda | jq --exit-status '.Configuration.LastUpdateStatus == "Successful"'; do
 	  sleep 1s
 	done
-	- | # Smoke test deployed resources
- 	export API_PUBLIC_HOSTNAME=$(cat ./.api_public_hostname)
-	set -exo pipefail
+	export API_PUBLIC_HOSTNAME=$(cat ./.api_public_hostname)
 	JSON_OUTPUT=$(curl -s -S -XPOST -H 'Content-Type: application/json' -H "Host:${API_PUBLIC_HOSTNAME}" "${EXECUTE_API_VPC_ENDPOINT_URL}/v1/PerformHealthcheck")
 	echo "${JSON_OUTPUT}" | jq --exit-status '.success == true'

@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-TERRAFORM_VERSION=$(cat .terraform-version)
+TERRAFORM_VERSION := $(shell cat ../.terraform-version)
 ACCOUNT_NUMBER=$(shell cat ../account_id)
 
 .PHONY: clean
@@ -8,7 +8,7 @@ clean:
 
 .PHONY: init
 init:
-	terraform init -reconfigure -backend-config="bucket=terraform-shortie"
+	terraform init -reconfigure # -backend-config="bucket=your-terraform-state-bucket"
 
 .PHONY: installterraform
 installterraform:
